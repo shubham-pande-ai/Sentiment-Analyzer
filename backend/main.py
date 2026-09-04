@@ -85,8 +85,8 @@ def get_llm():
     if not api_key:
         raise HTTPException(status_code=500, detail="GROQ_API_KEY environment variable not set. Please add it to backend/.env")
     
-    # Using the primary model
-    return ChatGroq(model="groq/compound", temperature=0.0, max_retries=3)
+    # Using groq/compound-mini for strict JSON output compliance and a fresh TPD bucket
+    return ChatGroq(model="groq/compound-mini", temperature=0.0, max_retries=3)
 
 @app.get("/")
 def read_root():

@@ -1,60 +1,155 @@
-# AI-Powered Sentiment Analyzer (Full-Stack)
+# AI-Powered Sentiment Analyzer - Enterprise Full-Stack
 
-This is a production-ready, Full-Stack Agentic AI application designed to analyze customer support conversation transcripts and extract actionable business insights such as Sentiment, Emotion, CSAT estimates, and Action Items.
+> A production-ready, full-stack AI application for **Tata Tele Business Services (TTBS)** that analyzes customer support transcripts and extracts actionable business insights: Sentiment, Emotion, CSAT, Churn Risk, Empathy Score, and Action Items.
 
-## Architectural Overview
+**Live Demo:** [sentiment-analyzer-sand.vercel.app](https://sentiment-analyzer-sand.vercel.app/) — Login: `admin` / `password`
 
-- **Frontend:** Next.js (React), Tailwind CSS (Dark Mode Glassmorphism Theme), Recharts
-- **Backend:** FastAPI (Python), LangChain
-- **AI Engine:** Groq (Llama-3 70B via JsonOutputParser)
-- **Deployment:** Docker & Vercel Serverless
+---
 
-## 🚀 Key "Stand-Out" Features
+## 🎬 Product Walkthrough & Demo
 
-### 1. Zero-Trust PII Redaction (Data Privacy)
-Enterprise security is the #1 priority in AI. Before any transcript is sent to the Cloud LLM, it passes through a custom backend PII Engine. Sensitive customer data (Emails, Phone Numbers, Account IDs) are actively stripped and masked via Regex. The Cloud AI never sees raw customer data.
+https://github.com/user-attachments/assets/e4fc4f5d-7b26-4b67-959b-452fdea81af3
 
-### 2. Granular Sentence-Level Parsing
-To achieve maximum mathematical accuracy for the Sentiment Pie Chart, the LangChain prompt forces the LLM to split the transcript by literal punctuation (periods/exclamation marks) rather than grouping entire speaker turns.
+---
 
-### 3. Modern SaaS Dashboard
-The UI is not a basic boilerplate. It features a completely custom, professional SaaS dark mode utilizing glassmorphism (`backdrop-blur`), dynamic background gradients, interactive charts, and sleek typography.
+## Architecture
 
-### 4. Deterministic Anti-Hallucination Guardrails
-LLMs naturally hallucinate formats. To ensure 100% stable API responses:
-- **Zero/Few-Shot Prompting:** Locks the LLM into a strict JSON template.
-- **Strict Grading Rubrics:** Hardcoded rules dictate exactly how to score CSAT based on semantic triggers in the conversation.
-- **Temperature Control:** Set to `0.0` for deterministic outputs.
+```mermaid
+flowchart TD
+    Browser["BROWSER\nNext.js 15 · Tailwind CSS · Recharts\nGlassmorphism Dark Mode UI"]
+    -->|"POST /analyze (.txt upload)"| S1
 
-## Setup Instructions
+    subgraph Backend["FASTAPI BACKEND — Python"]
+        direction TB
+        S1["Input Validation\nRejects non-.txt and empty files"]
+        --> S2["PII Redaction Engine\nStrips Emails, Phones, Account IDs via Regex"]
+        --> S3["LangChain Orchestration\nPrompt Engineering + Few-Shot Rubrics"]
+        --> S4["Groq — Llama-3 70B\nLLM Inference at Temperature = 0.0"]
+        --> S5["Pydantic + JsonOutputParser\nStrict JSON Schema Validation"]
+    end
 
-### Frontend (Live Deployment)
-The frontend UI is fully deployed and accessible via Vercel Serverless:
-- **Link:** [https://sentiment-analyzer-g3i19q81p-shubham-pande-ai.vercel.app/](https://sentiment-analyzer-g3i19q81p-shubham-pande-ai.vercel.app/)
-- **Username:** `admin`
-- **Password:** `password`
+    S5 -->|"Validated JSON Response"| Dashboard
 
-*Note: Vercel only hosts Next.js frontends. To use the AI 'Analyze' button, you must run the Python Backend locally on your machine using Docker.*
+    Dashboard["DASHBOARD — Recharts Visualizations\nSentiment · CSAT · Emotions · Churn Risk · Sentence Breakdown"]
 
-### Backend (Local Docker)
-To spin up the heavily orchestrated AI backend (which the Vercel frontend will securely route to via `NEXT_PUBLIC_API_URL`), follow these steps:
+    subgraph Docker["Docker Compose — Shared Bridge Network"]
+        FE["sentiment_frontend\nNext.js :3000"] -->|HTTP| BE["sentiment_backend\nFastAPI :8000"]
+    end
+```
 
-1. **Environment Variables**
-   Navigate to the `backend/` directory and ensure your `.env` file has your Groq API key:
-   ```bash
-   GROQ_API_KEY=your_groq_api_key_here
-   ```
+---
 
-2. **Run with Docker Compose**
-   From the root directory, simply run:
-   ```bash
-   docker-compose up --build
-   ```
+## Key Features
 
-3. **Backend API Docs (Swagger):** [http://localhost:8000/docs](http://localhost:8000/docs)
+### 1. Zero-Trust PII Redaction
+Before any transcript reaches the Cloud LLM, a custom Python Regex engine actively strips sensitive data:
 
-## Future Roadmap (Scalability)
-If this POC were scaled to a production enterprise environment, the following architecture would be implemented:
-- **Multi-Agent 'Critic' Loop:** Implementing LangGraph so a secondary 'Critic' Agent mathematically verifies the first Agent's JSON against the transcript before sending it to the user.
-- **Dynamic Fallback Routing:** Implementing LiteLLM to automatically reroute traffic from Groq to OpenAI/Gemini if API rate limits (HTTP 429) are encountered, guaranteeing zero downtime.
-- **NoSQL Storage:** Connecting an Async MongoDB cluster to track CSAT trends globally across millions of analyzed transcripts.
+| Raw Input | After Redaction |
+| :--- | :--- |
+| `john@example.com` | `[REDACTED_EMAIL]` |
+| `555-123-4567` | `[REDACTED_PHONE]` |
+| `Account ID: 849302` | `Account ID: [REDACTED_ACCOUNT]` |
+
+The Cloud AI **never sees raw customer data.**
+
+### 2. Deterministic Anti-Hallucination Guardrails
+- **Temperature = 0.0** — Same transcript always produces identical results.
+- **Few-Shot Prompting** — Locks the LLM into a strict JSON output pattern.
+- **Hardcoded Grading Rubrics** — CSAT scoring rules are explicit, not guessed by the AI.
+
+### 3. Granular Sentence-Level Parsing
+The LangChain prompt forces the LLM to split transcripts by literal punctuation (not speaker turns), maximizing mathematical accuracy for the Sentiment Pie Chart.
+
+### 4. Docker Compose Deployment
+One command runs the entire production stack:
+```bash
+docker-compose up --build
+```
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| Frontend | Next.js 15, Tailwind CSS, Recharts |
+| Backend | FastAPI (Python) |
+| AI Orchestration | LangChain + JsonOutputParser |
+| LLM | Groq — Llama-3 70B (Temperature 0.0) |
+| Deployment | Docker Compose + Vercel |
+
+---
+
+## Design Rationale
+
+| Decision | Why |
+| :--- | :--- |
+| **FastAPI over Next.js API Route** | AI workloads in Python can be scaled independently from the React frontend. Building AI inside a Next.js monolith means you cannot scale the two layers separately in production. |
+| **Llama-3 70B over GPT-4o-mini / Gemini Flash** | Small 8B models frequently hallucinate when parsing complex nested JSON schemas. The 70B model has sufficient reasoning capacity to follow strict grading rubrics in a single zero-shot prompt. Additionally, Llama-3 is fully open-source — no OpenAI vendor lock-in for an enterprise like TTBS. |
+| **Docker Compose** | Guarantees any engineer or CI/CD pipeline can run the full production-equivalent stack with one command. No Python version conflicts, no manual venv activation. |
+| **Temperature = 0.0** | Enterprise reporting requires reproducible outputs. A non-zero temperature means the same transcript could score CSAT 7 one run and CSAT 4 the next — unacceptable for weekly business reviews. |
+
+---
+
+## Error Handling
+
+| Scenario | HTTP Code | Response |
+| :--- | :--- | :--- |
+| Non-.txt file uploaded | `400` | `"Only .txt files are supported"` |
+| Empty file uploaded | `400` | `"The file is empty"` |
+| Missing `GROQ_API_KEY` | `500` | `"GROQ_API_KEY environment variable not set"` |
+| Groq rate limit (429) | Auto-retry | LangChain retries 3x before raising 500 |
+| LLM returns malformed JSON | `500` | JsonOutputParser exception surfaced to caller |
+
+---
+
+## Setup
+
+### Backend (Docker — Full Stack)
+```bash
+# 1. Add your Groq API key to backend/.env
+echo "GROQ_API_KEY=your_key_here" > backend/.env
+
+# 2. Run from the root directory
+docker-compose up --build
+```
+
+| Service | URL |
+| :--- | :--- |
+| Frontend | http://localhost:3000 |
+| Backend API (Swagger) | http://localhost:8000/docs |
+
+---
+
+## Sample API Response
+
+`POST /analyze` with a `.txt` transcript returns:
+
+```json
+{
+  "overall_sentiment": "Positive",
+  "dominant_emotion": "Relief",
+  "csat_estimate": 9,
+  "empathy_score": 9,
+  "resolution_status": "Resolved",
+  "churn_risk": "Low",
+  "summary": "Customer called frustrated about a 4-hour outage. Agent confirmed technicians were on-site and offered an account credit, fully resolving the issue.",
+  "action_items": [
+    { "task": "Issue account credit for today's downtime", "assignee": "Agent" }
+  ],
+  "sentence_breakdown": [
+    { "sentence": "Customer: I'm really frustrated.", "sentiment": "Negative" },
+    { "sentence": "Agent: I completely understand.", "sentiment": "Positive" }
+  ],
+  "redacted_transcript": "Customer: My account [REDACTED_ACCOUNT] has been down for 4 hours."
+}
+```
+
+---
+
+## Future Roadmap
+
+- **LangGraph Critic Agent** — A second AI agent verifies the first agent's JSON for hallucinations before returning to the user.
+- **LiteLLM Failover** — Auto-reroutes to OpenAI/Gemini if Groq hits rate limits (HTTP 429).
+- **Microsoft Presidio** — Upgrade PII redaction from Regex to NLP-based entity recognition.
+- **MongoDB** — Persist CSAT trends globally for executive-level business intelligence.
