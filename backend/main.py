@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 import os
 import asyncio
 from dotenv import load_dotenv
@@ -24,7 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- Pydantic Models for Parallel Execution ---
+# --- Pydantic Models ---
 
 class SentenceSentiment(BaseModel):
     sentence: str = Field(description="The exact original sentence from the text")
@@ -34,8 +34,7 @@ class ActionItem(BaseModel):
     task: str = Field(description="The action item task description")
     assignee: str = Field(description="Who needs to do it")
 
-# Agent 1: KPIs
-class KPIResult(BaseModel):
+class AnalysisResult(BaseModel):
     overall_sentiment: str = Field(description="Overall sentiment: Positive, Negative, or Neutral")
     dominant_emotion: str = Field(description="The dominant emotion: Frustration, Joy, Anger, Relief, etc.")
     summary: str = Field(description="A concise 2-3 sentence summary of the conversation")
@@ -43,18 +42,8 @@ class KPIResult(BaseModel):
     empathy_score: int = Field(description="Estimated Agent Empathy score from 1-10")
     resolution_status: str = Field(description="Resolved, Needs Follow-up, or Escalated")
     churn_risk: str = Field(description="High, Medium, or Low")
-
-# Agent 2: Action Items
-class ActionItemsResult(BaseModel):
     action_items: List[ActionItem] = Field(description="List of extracted action items")
-
-# Agent 3: Sentences
-class SentencesResult(BaseModel):
     sentence_breakdown: List[SentenceSentiment] = Field(description="Sentence-by-sentence sentiment analysis")
-
-# Final combined result sent to frontend
-class AnalysisResult(KPIResult, ActionItemsResult, SentencesResult):
-    pass
 
 def get_llm():
     api_key = os.getenv("GROQ_API_KEY")
@@ -81,6 +70,14 @@ async def analyze_conversation(file: UploadFile = File(...)):
     llm = get_llm()
     parser = JsonOutputParser(pydantic_object=AnalysisResult)
     
+    # =====================================================================
+    # ADVANCED PROMPT ENGINEERING:
+    # 1. Zero-Shot / Few-Shot Prompting: We provide a mini 'Few-Shot Example' 
+    #    to lock the LLM into a consistent JSON generation pattern.
+    # 2. Strict Grading Rubrics: Instead of letting the LLM hallucinate 
+    #    arbitrary scores (like CSAT), we provide explicit boundaries.
+    # 3. Grounding: Forcing the model to rely ONLY on the provided text.
+    # =====================================================================
     prompt = PromptTemplate(
         template="""You are an expert customer support AI analyst. 
         Analyze the following conversation transcript and extract the requested insights.
@@ -97,11 +94,11 @@ async def analyze_conversation(file: UploadFile = File(...)):
         Customer: Thanks!
         
         Expected JSON logic: 
-        action_items=[{"task": "Issue a refund", "assignee": "Agent"}], 
+        action_items=[{{"task": "Issue a refund", "assignee": "Agent"}}], 
         sentence_breakdown=[
-          {"sentence": "Agent: Hello.", "sentiment": "Neutral"},
-          {"sentence": "Agent: I will issue a refund right now.", "sentiment": "Positive"},
-          {"sentence": "Customer: Thanks!", "sentiment": "Positive"}
+          {{"sentence": "Agent: Hello.", "sentiment": "Neutral"}},
+          {{"sentence": "Agent: I will issue a refund right now.", "sentiment": "Positive"}},
+          {{"sentence": "Customer: Thanks!", "sentiment": "Positive"}}
         ]
         
         {format_instructions}
@@ -116,6 +113,7 @@ async def analyze_conversation(file: UploadFile = File(...)):
     try:
         chain = prompt | llm | parser
         result = await chain.ainvoke({"transcript": text})
+        
         return result
         
     except Exception as e:

@@ -91,37 +91,58 @@ export default function Dashboard() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-xl shadow-sm w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Welcome Back</h1>
-            <p className="text-gray-500 mt-2">Sign in to Sentiment Analyzer</p>
+      <div className="min-h-screen bg-slate-900 text-slate-200 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Decorative background gradients */}
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/20 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-purple-500/20 rounded-full blur-[120px] pointer-events-none"></div>
+        
+        <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] w-full max-w-md z-10 relative">
+          <div className="text-center mb-10">
+            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-lg shadow-indigo-500/30">
+              <span className="text-2xl">✨</span>
+            </div>
+            <h1 className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
+              Welcome Back
+            </h1>
+            <p className="text-slate-400 font-medium mt-2">Sign in to Sentiment Analyzer</p>
           </div>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+          
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-1.5">
+              <label className="block text-sm font-semibold text-slate-300 ml-1">Username</label>
               <input 
                 type="text" 
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-slate-800 bg-white"
-                placeholder="admin"
+                className="w-full px-5 py-3.5 bg-slate-900/50 border border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none text-slate-200 placeholder-slate-500 transition-all duration-300"
+                placeholder="Enter your username"
                 required
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            
+            <div className="space-y-1.5">
+              <label className="block text-sm font-semibold text-slate-300 ml-1">Password</label>
               <input 
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-slate-800 bg-white"
-                placeholder="password"
+                className="w-full px-5 py-3.5 bg-slate-900/50 border border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none text-slate-200 placeholder-slate-500 transition-all duration-300"
+                placeholder="••••••••"
                 required
               />
             </div>
-            {loginError && <p className="text-red-500 text-sm">{loginError}</p>}
-            <button type="submit" className="w-full bg-blue-600 text-white font-medium py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            
+            {loginError && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-xl text-sm font-medium flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <p>{loginError}</p>
+              </div>
+            )}
+            
+            <button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-bold py-4 rounded-xl hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] transition-all duration-300 mt-2"
+            >
               Sign In
             </button>
           </form>
