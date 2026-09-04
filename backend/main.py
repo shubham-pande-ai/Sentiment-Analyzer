@@ -95,10 +95,10 @@ async def analyze_conversation(file: UploadFile = File(...)):
         Transcript: 
         Agent: Hello.
         Customer: My app is crashing.
-        Agent: I fixed it.
+        Agent: I will issue a refund right now.
         Customer: Thanks!
         
-        Expected JSON logic: CSAT=9, Resolution=Resolved, Action Items=[], Sentences=[{"sentence": "Agent: Hello.", "sentiment": "Neutral"}, ...]
+        Expected JSON logic: CSAT=9, Resolution=Resolved, action_items=[{"task": "Issue a refund", "assignee": "Agent"}], sentence_breakdown=[{"sentence": "Agent: Hello.", "sentiment": "Neutral"}, ...]
         
         {format_instructions}
         

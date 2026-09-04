@@ -131,86 +131,128 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8 text-slate-800">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <header className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Sentiment Analyzer</h1>
-            <p className="text-gray-500">AI-Powered Conversation Insights</p>
+    <div className="min-h-screen bg-slate-900 text-slate-200 selection:bg-indigo-500/30">
+      {/* Decorative background gradients */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/20 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/20 rounded-full blur-[120px]"></div>
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10 z-10">
+        
+        {/* Header */}
+        <header className="flex flex-col md:flex-row justify-between items-center bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 p-6 rounded-3xl shadow-2xl">
+          <div className="mb-6 md:mb-0">
+            <h1 className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
+              Sentiment Analyzer
+            </h1>
+            <p className="text-slate-400 font-medium mt-1">AI-Powered Conversation Insights</p>
           </div>
-          <div className="flex gap-4">
-            <input
-              type="file"
-              accept=".txt"
-              onChange={handleFileChange}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
+          
+          <div className="flex flex-col sm:flex-row gap-4 items-center w-full md:w-auto">
+            <label className="flex-1 sm:flex-none cursor-pointer group relative">
+              <input
+                type="file"
+                accept=".txt"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <div className="flex items-center gap-3 px-6 py-3 bg-slate-700/50 hover:bg-slate-700 border border-slate-600 rounded-full transition-all duration-300">
+                <UploadCloud className="w-5 h-5 text-indigo-400 group-hover:scale-110 transition-transform" />
+                <span className="text-sm font-medium text-slate-300">
+                  {file ? file.name : "Choose File"}
+                </span>
+              </div>
+            </label>
+            
             <button
               onClick={handleUpload}
               disabled={!file || loading}
-              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-full font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-8 py-3 rounded-full font-bold hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] disabled:opacity-50 disabled:hover:shadow-none transition-all duration-300"
             >
-              {loading ? <Loader2 className="animate-spin w-5 h-5" /> : <UploadCloud className="w-5 h-5" />}
-              Analyze
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin w-5 h-5" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <UploadCloud className="w-5 h-5" />
+                  Analyze
+                </>
+              )}
             </button>
           </div>
         </header>
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-xl flex items-center gap-3">
-            <AlertCircle className="w-5 h-5" />
-            <p>{error}</p>
+          <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-5 rounded-2xl flex items-center gap-3 shadow-lg">
+            <AlertCircle className="w-6 h-6 flex-shrink-0" />
+            <p className="font-medium">{error}</p>
           </div>
         )}
 
         {result && (
-          <main className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <main className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            
             {/* KPI Cards */}
-            <div className="col-span-1 md:col-span-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-              <KPICard title="CSAT Estimate" value={`${result.csat_estimate}/10`} />
-              <KPICard title="Empathy Score" value={`${result.empathy_score}/10`} />
-              <KPICard title="Resolution" value={result.resolution_status} />
-              <KPICard title="Churn Risk" value={result.churn_risk} />
+            <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <KPICard title="CSAT Estimate" value={`${result.csat_estimate}/10`} color="indigo" />
+              <KPICard title="Empathy Score" value={`${result.empathy_score}/10`} color="purple" />
+              <KPICard title="Resolution" value={result.resolution_status} color="emerald" />
+              <KPICard title="Churn Risk" value={result.churn_risk} color="rose" />
             </div>
 
             {/* Left Column - Summary & Actions */}
-            <div className="col-span-1 md:col-span-2 space-y-6">
-              <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h2 className="text-xl font-semibold mb-4">Conversation Summary</h2>
-                <p className="text-gray-700 leading-relaxed">{result.summary}</p>
+            <div className="lg:col-span-2 space-y-8">
+              <div className="bg-slate-800/40 backdrop-blur-lg border border-slate-700/50 p-8 rounded-3xl shadow-xl">
+                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400">📝</span>
+                  Conversation Summary
+                </h2>
+                <p className="text-slate-300 leading-relaxed text-lg">{result.summary}</p>
               </div>
               
-              <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h2 className="text-xl font-semibold mb-4">Action Items</h2>
+              <div className="bg-slate-800/40 backdrop-blur-lg border border-slate-700/50 p-8 rounded-3xl shadow-xl">
+                <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">⚡</span>
+                  Action Items
+                </h2>
                 {result.action_items.length > 0 ? (
-                  <ul className="space-y-3">
+                  <ul className="space-y-4">
                     {result.action_items.map((item, i) => (
-                      <li key={i} className="flex gap-3 items-start p-3 bg-blue-50/50 rounded-lg border border-blue-100">
-                        <CheckCircle className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <li key={i} className="flex gap-4 items-start p-4 bg-slate-700/30 rounded-2xl border border-slate-600/50 hover:border-indigo-500/30 transition-colors">
+                        <CheckCircle className="w-6 h-6 text-emerald-400 mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="font-medium text-gray-900">{item.task}</p>
-                          <p className="text-sm text-gray-500">Assignee: {item.assignee}</p>
+                          <p className="font-semibold text-slate-200 text-lg">{item.task}</p>
+                          <p className="text-sm text-indigo-300 font-medium mt-1">Assignee: {item.assignee}</p>
                         </div>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-gray-500 italic">No action items detected.</p>
+                  <div className="flex flex-col items-center justify-center py-8 text-slate-500">
+                    <CheckCircle className="w-12 h-12 mb-3 opacity-20" />
+                    <p className="italic">No actionable items detected in this conversation.</p>
+                  </div>
                 )}
               </div>
 
-              <div className="bg-white p-6 rounded-xl shadow-sm">
-                 <h2 className="text-xl font-semibold mb-4">Sentence Breakdown</h2>
-                 <div className="max-h-96 overflow-y-auto space-y-2 pr-2">
+              <div className="bg-slate-800/40 backdrop-blur-lg border border-slate-700/50 p-8 rounded-3xl shadow-xl">
+                 <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">💬</span>
+                  Sentence Breakdown
+                </h2>
+                 <div className="max-h-[500px] overflow-y-auto space-y-3 pr-4 custom-scrollbar">
                     {result.sentence_breakdown.map((s, i) => (
-                        <div key={i} className="flex gap-3 text-sm border-b pb-2">
+                        <div key={i} className="flex gap-4 p-4 rounded-2xl bg-slate-900/50 border border-slate-700/30 hover:bg-slate-800/80 transition-colors">
                             <span 
-                                className={`font-semibold w-20 flex-shrink-0`}
+                                className="font-bold w-20 flex-shrink-0 text-sm tracking-wide uppercase mt-0.5"
                                 style={{ color: sentimentColors[s.sentiment] || sentimentColors.Neutral }}
                             >
                                 {s.sentiment}
                             </span>
-                            <span className="text-gray-700">{s.sentence}</span>
+                            <span className="text-slate-300">{s.sentence}</span>
                         </div>
                     ))}
                  </div>
@@ -218,10 +260,10 @@ export default function Dashboard() {
             </div>
 
             {/* Right Column - Charts & Emotion */}
-            <div className="space-y-6">
-              <div className="bg-white p-6 rounded-xl shadow-sm flex flex-col items-center">
-                <h2 className="text-xl font-semibold mb-4 w-full text-left">Overall Sentiment</h2>
-                <div className="h-48 w-full">
+            <div className="space-y-8">
+              <div className="bg-slate-800/40 backdrop-blur-lg border border-slate-700/50 p-8 rounded-3xl shadow-xl flex flex-col items-center">
+                <h2 className="text-xl font-bold text-white mb-6 w-full text-left">Overall Sentiment</h2>
+                <div className="h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -232,26 +274,31 @@ export default function Dashboard() {
                         ]}
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
+                        innerRadius={80}
+                        outerRadius={100}
                         paddingAngle={5}
                         dataKey="value"
+                        stroke="none"
                       >
                         <Cell fill={sentimentColors.Positive} />
                         <Cell fill={sentimentColors.Neutral} />
                         <Cell fill={sentimentColors.Negative} />
                       </Pie>
-                      <Tooltip />
-                      <Legend />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', color: '#f8fafc' }}
+                        itemStyle={{ color: '#f8fafc' }}
+                      />
+                      <Legend wrapperStyle={{ paddingTop: '20px' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-xl shadow-sm text-white">
-                <h2 className="text-xl font-semibold mb-2">Dominant Emotion</h2>
-                <p className="text-4xl font-bold capitalize">{result.dominant_emotion}</p>
-                <p className="mt-2 text-indigo-100 text-sm">Derived from the overall tone of the conversation.</p>
+              <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 to-purple-700 p-8 rounded-3xl shadow-2xl text-white">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+                <h2 className="text-lg font-medium text-indigo-100 mb-2 uppercase tracking-wider">Dominant Emotion</h2>
+                <p className="text-5xl font-extrabold capitalize tracking-tight">{result.dominant_emotion}</p>
+                <p className="mt-4 text-indigo-100/80 text-sm font-medium">Derived from the overall tone and lexical analysis of the transcript.</p>
               </div>
             </div>
           </main>
@@ -261,11 +308,19 @@ export default function Dashboard() {
   );
 }
 
-function KPICard({ title, value }: { title: string; value: string | number }) {
+function KPICard({ title, value, color }: { title: string; value: string | number; color: 'indigo' | 'purple' | 'emerald' | 'rose' }) {
+  const colorMap = {
+    indigo: 'from-indigo-500/20 to-indigo-500/5 border-indigo-500/20 text-indigo-400',
+    purple: 'from-purple-500/20 to-purple-500/5 border-purple-500/20 text-purple-400',
+    emerald: 'from-emerald-500/20 to-emerald-500/5 border-emerald-500/20 text-emerald-400',
+    rose: 'from-rose-500/20 to-rose-500/5 border-rose-500/20 text-rose-400',
+  };
+
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border-t-4 border-blue-500">
-      <h3 className="text-sm font-medium text-gray-500 mb-1">{title}</h3>
-      <p className="text-3xl font-bold text-gray-900">{value}</p>
+    <div className={`bg-gradient-to-b ${colorMap[color].split(' ').slice(0, 2).join(' ')} backdrop-blur-md border ${colorMap[color].split(' ')[2]} p-6 rounded-3xl shadow-lg relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300`}>
+      <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">{title}</h3>
+      <p className="text-4xl font-extrabold text-white">{value}</p>
+      <div className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full blur-2xl opacity-50 bg-current ${colorMap[color].split(' ')[3]} group-hover:scale-150 transition-transform duration-500`}></div>
     </div>
   );
 }
