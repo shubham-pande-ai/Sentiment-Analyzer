@@ -79,63 +79,43 @@ async def analyze_conversation(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="The file is empty")
     
     llm = get_llm()
-
-    # --- AGENT 1: KPI Extraction ---
-    kpi_parser = JsonOutputParser(pydantic_object=KPIResult)
-    kpi_prompt = PromptTemplate(
-        template="""Extract core KPIs and Summary from this transcript.
-        CRITICAL RULES:
-        1. GROUNDING: Do NOT invent information.
-        2. CSAT: Score 1-10. Angry ends=1-4. Neutral=5-7. Happy/Thanks=9.
+    parser = JsonOutputParser(pydantic_object=AnalysisResult)
+    
+    prompt = PromptTemplate(
+        template="""You are an expert customer support AI analyst. 
+        Analyze the following conversation transcript and extract the requested insights.
+        
+        CRITICAL RULES TO PREVENT HALLUCINATION & ENSURE CONSISTENCY:
+        1. GROUNDING: Do NOT invent information. Base answers STRICTLY on the text.
+        2. CONSISTENCY (CSAT): Score CSAT 1-10. If the customer ends angry, score 1-4. If neutral, 5-7. If they explicitly thank the agent and say it helps, score exactly 9.
+        3. CONSISTENCY (SENTENCES): Keep the exact speaker format for sentences (e.g., "Customer: [text]"). Do not split a single speaker's continuous turn into multiple tiny sentences unless there is a clear topic change.
+        4. UNKNOWN: If a KPI is not present, return an empty list.
+        
+        FEW-SHOT EXAMPLE:
+        Transcript: 
+        Agent: Hello.
+        Customer: My app is crashing.
+        Agent: I fixed it.
+        Customer: Thanks!
+        
+        Expected JSON logic: CSAT=9, Resolution=Resolved, Action Items=[], Sentences=[{"sentence": "Agent: Hello.", "sentiment": "Neutral"}, ...]
         
         {format_instructions}
-        Transcript: {transcript}""",
-        input_variables=["transcript"],
-        partial_variables={"format_instructions": kpi_parser.get_format_instructions()},
-    )
-    kpi_chain = kpi_prompt | llm | kpi_parser
-
-    # --- AGENT 2: Action Items Extraction ---
-    action_parser = JsonOutputParser(pydantic_object=ActionItemsResult)
-    action_prompt = PromptTemplate(
-        template="""Extract Action Items from this transcript.
-        CRITICAL RULES: If no action items exist, return an empty list. Do not hallucinate.
         
-        {format_instructions}
-        Transcript: {transcript}""",
+        Transcript:
+        {transcript}
+        """,
         input_variables=["transcript"],
-        partial_variables={"format_instructions": action_parser.get_format_instructions()},
+        partial_variables={"format_instructions": parser.get_format_instructions()},
     )
-    action_chain = action_prompt | llm | action_parser
-
-    # --- AGENT 3: Sentence Breakdown Extraction ---
-    sentences_parser = JsonOutputParser(pydantic_object=SentencesResult)
-    sentences_prompt = PromptTemplate(
-        template="""Break down the transcript sentence-by-sentence and determine the sentiment for each.
-        CRITICAL RULES: Keep the exact speaker format (e.g., "Customer: [text]"). Do not split a single speaker's continuous turn into multiple tiny sentences.
-        
-        {format_instructions}
-        Transcript: {transcript}""",
-        input_variables=["transcript"],
-        partial_variables={"format_instructions": sentences_parser.get_format_instructions()},
-    )
-    sentences_chain = sentences_prompt | llm | sentences_parser
-
+    
     try:
-        # EXECUTE ALL 3 AGENTS IN PARALLEL
-        # This reduces latency by running the heavy extraction tasks concurrently!
-        kpi_res, action_res, sentences_res = await asyncio.gather(
-            kpi_chain.ainvoke({"transcript": text}),
-            action_chain.ainvoke({"transcript": text}),
-            sentences_chain.ainvoke({"transcript": text})
-        )
-        
-        # Combine the results
-        final_result = {**kpi_res, **action_res, **sentences_res}
-        return final_result
+        chain = prompt | llm | parser
+        result = await chain.ainvoke({"transcript": text})
+        return result
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error analyzing text in parallel: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error analyzing text: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
