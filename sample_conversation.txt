@@ -1,0 +1,11 @@
+Agent: Hello, thank you for calling TechSupport. My name is Alex. How can I help you today?
+Customer: Hi Alex, I'm really frustrated. My internet has been down for the past 4 hours and I work from home. I can't get anything done!
+Agent: I am so sorry to hear that your internet is down, especially when you are working from home. I completely understand your frustration. Let me look into this right away. Can I have your account number?
+Customer: Yes, it's 849302.
+Agent: Thank you. I see there is an outage in your area due to a downed power line. Our technicians are already on site.
+Customer: Oh, okay. Do you know how long it will take to fix?
+Agent: The estimated time of repair is about 2 hours. I will also issue a credit to your account for the downtime you experienced today.
+Customer: Oh, wow. Thank you so much, Alex. That actually helps a lot. I appreciate it.
+Agent: You're very welcome! Is there anything else I can assist you with today?
+Customer: No, that's all. Thanks again for your help.
+Agent: Thank you for choosing us. Have a great rest of your day!
