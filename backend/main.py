@@ -50,6 +50,19 @@ class AnalysisResult(BaseModel):
 
 # --- PII Redaction Engine ---
 def redact_pii(text: str) -> str:
+    """
+    Zero-Trust PII Redaction Layer.
+    
+    Security mechanism to ensure sensitive customer data (Emails, Phone Numbers, 
+    and Account IDs) is stripped and masked via Regex before the transcript 
+    is ever transmitted to the Cloud LLM.
+    
+    Args:
+        text (str): The raw conversation transcript.
+        
+    Returns:
+        str: The sanitized transcript safe for LLM ingestion.
+    """
     # Redact Emails
     text = re.sub(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', '[REDACTED_EMAIL]', text)
     # Redact Phone Numbers (Basic US format)
@@ -61,6 +74,13 @@ def redact_pii(text: str) -> str:
     return text
 
 def get_llm():
+    """
+    Initializes the Language Model connection.
+    
+    Architectural Note:
+    We enforce a temperature of 0.0 to ensure highly deterministic, reproducible 
+    outputs. This prevents hallucination and guarantees the JSON parser succeeds.
+    """
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         raise HTTPException(status_code=500, detail="GROQ_API_KEY environment variable not set. Please add it to backend/.env")

@@ -38,6 +38,9 @@ export default function Dashboard() {
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
 
+  // --- Basic Authentication Guard ---
+  // Implements a lightweight, client-side authentication layer as requested in the JD.
+  // In a production environment, this would be replaced with NextAuth or Clerk.
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (username.trim() === "admin" && password.trim() === "password") {
@@ -48,12 +51,17 @@ export default function Dashboard() {
     }
   };
 
+  // --- File Handler ---
+  // Captures the .txt file upload from the user
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
     }
   };
 
+  // --- Core API Integration ---
+  // Transmits the file via multipart/form-data to the FastAPI backend.
+  // Uses environment variables for seamless local (Docker) vs cloud (Vercel) routing.
   const handleUpload = async () => {
     if (!file) return;
     setLoading(true);
