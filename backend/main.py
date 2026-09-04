@@ -87,18 +87,22 @@ async def analyze_conversation(file: UploadFile = File(...)):
         
         CRITICAL RULES TO PREVENT HALLUCINATION & ENSURE CONSISTENCY:
         1. GROUNDING: Do NOT invent information. Base answers STRICTLY on the text.
-        2. CONSISTENCY (CSAT): Score CSAT 1-10. If the customer ends angry, score 1-4. If neutral, 5-7. If they explicitly thank the agent and say it helps, score exactly 9.
-        3. CONSISTENCY (SENTENCES): Keep the exact speaker format for sentences (e.g., "Customer: [text]"). Do not split a single speaker's continuous turn into multiple tiny sentences unless there is a clear topic change.
-        4. UNKNOWN: If a KPI is not present, return an empty list.
+        2. CONSISTENCY (CSAT): Score CSAT 1-10. If the customer ends angry, score 1-4. If neutral, 5-7. If they explicitly thank the agent, score 9.
+        3. SENTENCE BREAKDOWN: You MUST split the transcript into literal, grammatical sentences (e.g., split by periods, exclamation marks). Do NOT group multiple sentences together. Evaluate the sentiment of every single sentence individually. Prefix the sentence with the speaker's name.
+        4. ACTION ITEMS: You MUST extract any promises, next steps, or tasks mentioned (e.g., "I will issue a credit", "technicians will fix it"). If absolutely none exist, return an empty list.
         
         FEW-SHOT EXAMPLE:
         Transcript: 
-        Agent: Hello.
-        Customer: My app is crashing.
-        Agent: I will issue a refund right now.
+        Agent: Hello. I will issue a refund right now.
         Customer: Thanks!
         
-        Expected JSON logic: CSAT=9, Resolution=Resolved, action_items=[{"task": "Issue a refund", "assignee": "Agent"}], sentence_breakdown=[{"sentence": "Agent: Hello.", "sentiment": "Neutral"}, ...]
+        Expected JSON logic: 
+        action_items=[{"task": "Issue a refund", "assignee": "Agent"}], 
+        sentence_breakdown=[
+          {"sentence": "Agent: Hello.", "sentiment": "Neutral"},
+          {"sentence": "Agent: I will issue a refund right now.", "sentiment": "Positive"},
+          {"sentence": "Customer: Thanks!", "sentiment": "Positive"}
+        ]
         
         {format_instructions}
         
