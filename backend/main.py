@@ -24,6 +24,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+import re
+
 # --- Pydantic Models ---
 
 class SentenceSentiment(BaseModel):
@@ -44,6 +46,19 @@ class AnalysisResult(BaseModel):
     churn_risk: str = Field(description="High, Medium, or Low")
     action_items: List[ActionItem] = Field(description="List of extracted action items")
     sentence_breakdown: List[SentenceSentiment] = Field(description="Sentence-by-sentence sentiment analysis")
+    redacted_transcript: Optional[str] = Field(None, description="The PII-redacted version of the transcript")
+
+# --- PII Redaction Engine ---
+def redact_pii(text: str) -> str:
+    # Redact Emails
+    text = re.sub(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', '[REDACTED_EMAIL]', text)
+    # Redact Phone Numbers (Basic US format)
+    text = re.sub(r'\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b', '[REDACTED_PHONE]', text)
+    # Redact Account Numbers (Words followed by 6+ digits)
+    text = re.sub(r'(?i)(account|acct|id)[\s:#]*\d{6,}', r'\1 [REDACTED_ACCOUNT]', text)
+    # Redact standalone 6+ digit numbers
+    text = re.sub(r'\b\d{6,}\b', '[REDACTED_NUMBER]', text)
+    return text
 
 def get_llm():
     api_key = os.getenv("GROQ_API_KEY")
@@ -111,8 +126,15 @@ async def analyze_conversation(file: UploadFile = File(...)):
     )
     
     try:
+        # 1. Zero-Trust PII Redaction (Mask sensitive data before LLM sees it)
+        safe_text = redact_pii(text)
+        
+        # 2. Execute LLM Analysis on safe text
         chain = prompt | llm | parser
-        result = await chain.ainvoke({"transcript": text})
+        result = await chain.ainvoke({"transcript": safe_text})
+        
+        # 3. Attach the redacted text to the payload for frontend visibility
+        result["redacted_transcript"] = safe_text
         
         return result
         
